@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>to the bigday</title>
+  <link rel="stylesheet" href="./style.css">
+
+<style>
+    /* ฟอนต์พื้นฐาน */
+    :root {
+      --smaller: .75;
+    }
+
+    /* Overlay ครอบทั้งหน้าจอ */
+    #countdown-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #ffd54f; /* สีพื้นหลัง */
+      z-index: 9999;
+      
+      /* จัดกึ่งกลาง */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+
+      /* --- เพิ่มส่วนนี้สำหรับ Animation --- */
+      opacity: 1;
+      transition: opacity 1s ease-out; /* สั่งให้การเปลี่ยนค่า opacity ใช้เวลา 1 วินาทีแบบนุ่มนวล */
+    }
+
+    /* คลาสสำหรับสั่งให้จางหายไป */
+    #countdown-overlay.fade-out {
+        opacity: 0;
+        pointer-events: none; /* ป้องกันการคลิกตอนกำลังจาง */
+    }
+    /* ---------------------------------- */
+
+    .countdown-container {
+      color: #333;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .countdown-container h1 {
+      font-weight: normal;
+      letter-spacing: .125rem;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .countdown-container ul {
+      padding: 0;
+    }
+
+    .countdown-container li {
+      display: inline-block;
+      font-size: 1.5em;
+      list-style-type: none;
+      padding: 1em;
+      text-transform: uppercase;
+    }
+
+    .countdown-container li span {
+      display: block;
+      font-size: 4.5rem;
+    }
+
+    /* Responsive */
+    @media all and (max-width: 768px) {
+      .countdown-container h1 {
+        font-size: calc(1.5rem * var(--smaller));
+      }
+      
+      .countdown-container li {
+        font-size: calc(1.125rem * var(--smaller));
+        padding: 0.5em;
+      }
+      
+      .countdown-container li span {
+        font-size: calc(3.375rem * var(--smaller));
+      }
+    }
+
+    /* ซ่อนเนื้อหาหลัก (หน้าเค้ก) ไว้ก่อน */
+    .hidden-content {
+      display: none !important;
+    }
+  </style>
+
+</head>
+<body>
+
+<div id="countdown-overlay">
+  <div class="countdown-container">
+    <h1 id="headline">Countdown to the big day</h1>
+    <div id="countdown">
+      <ul>
+        <li><span id="days"></span>days</li>
+        <li><span id="hours"></span>Hours</li>
+        <li><span id="minutes"></span>Minutes</li>
+        <li><span id="seconds"></span>Seconds</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- partial:index.partial.html -->
+<div id="container">
+	<div id="cake-canvas"></div>
+	<div id="instructions">🎂 “อธิษฐานแล้ว กดตรงเทียน!” 🎂</div>
+	<div id="scroll-instruction">📜“เลื่อนหน้าจอลง!”📜</div>
+	<canvas id="confetti-canvas"></canvas>
+	<div id="letter">
+		<h1>Happy Birthday!!</h1>
+		      <div class="quote">
+<p>
+  <span class="small">ขอให้ปีนี้เป็นปีที่ดี เต็มไปด้วย</span>
+	<span class="big">ความสุข</span>
+
+</p>
+
+  <div class="top">
+ <p>
+    <span class="small">และขอให้</span>
+    <span class="big">สมหวัง</span>
+    <span class="small">ในสิ่งที่ปรารถนานะครับ </span>
+  </p>
+
+  </div>
+ 
+</div>
+		<br><br>
+		<div style="display:flex; justify-content:center; align-items:center;line-height: 1; ">
+  <p>
+    <span class="small2">24 แล้ววว,ไม่ว่าจะผ่านอะไรมาเธอก็เก่งมากๆแล้วนะ  อ่อนแอบ้างก็ได้ เก่งตลอดมันเหนื่อยนะ   </span>
+    <span class="big2">สุขสันต์วันเกิด</span>
+    <span class="small">นะครับบ</span>
+  </p>
+</div>
+
+
+
+		</p>
+	</div>
+</div>
+
+<div id="spacer"></div>
+<!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'></script>
+<script  src="./script.js"></script>
+
+
+
+<script>
+(function () {
+      const second = 1000,
+            minute = second * 60,
+            hour = minute * 60,
+            day = hour * 24;
+
+      // --- ตั้งค่าวันที่เป้าหมาย: 5 มกราคม 2026 เวลา 00:00:00 ---
+      // (ปี, เดือน[เริ่มที่0], วัน, ชม, นาที, วิ)
+      
+      // *** ใช้บรรทัดนี้สำหรับวันจริง ***
+      // const targetDate = new Date(2026, 0, 5, 0, 0, 0).getTime();
+
+      // *** ใช้บรรทัดนี้สำหรับทดสอบ (อีก 5 วินาทีข้างหน้า) ***
+      const targetDate = new Date().getTime() + 5000;
+
+
+      const x = setInterval(function() {    
+          const now = new Date().getTime(),
+                distance = targetDate - now;
+
+          // ใส่ข้อมูลลงใน HTML
+          document.getElementById("days").innerText = Math.floor(distance / (day));
+          document.getElementById("hours").innerText = Math.floor((distance % (day)) / (hour));
+          document.getElementById("minutes").innerText = Math.floor((distance % (hour)) / (minute));
+          document.getElementById("seconds").innerText = Math.floor((distance % (minute)) / second);
+
+          // เมื่อถึงเวลา (distance < 0)
+          if (distance < 0) {
+            clearInterval(x);
+            
+            // 1. เรียกใช้ Element
+            const overlay = document.getElementById("countdown-overlay");
+            const mainContent = document.getElementById("main-content");
+
+            // 2. เริ่ม Animation: เพิ่มคลาส fade-out เพื่อให้ CSS ทำงาน
+            overlay.classList.add('fade-out');
+            
+            // 3. รอให้ Animation จบ (1000ms = 1 วินาที ตามที่ตั้งใน CSS) แล้วค่อยแสดงเนื้อหาหลัก
+            setTimeout(() => {
+                overlay.style.display = "none"; // ซ่อน Overlay ออกไปจาก Flow ของหน้าเว็บ
+                mainContent.classList.remove("hidden-content"); // แสดงเนื้อหาหลัก
+                window.dispatchEvent(new Event('resize')); // รีไซส์หน้าจอสำหรับ 3D
+            }, 1000);
+          }
+      }, 1000)
+  }());
+</script>
+</body>
+</html>
